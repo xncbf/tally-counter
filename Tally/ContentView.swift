@@ -58,14 +58,6 @@ struct ContentView: View {
             }
             .navigationTitle("탈리")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        showingSettings = true
-                    } label: {
-                        Image(systemName: "gearshape.fill")
-                            .foregroundStyle(.secondary)
-                    }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showingAdd = true
@@ -75,6 +67,23 @@ struct ContentView: View {
                             .symbolRenderingMode(.hierarchical)
                     }
                 }
+            }
+            .overlay(alignment: .bottomTrailing) {
+                Button {
+                    showingSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.body)
+                        .foregroundStyle(.white.opacity(0.9))
+                        .frame(width: 48, height: 48)
+                        .background(
+                            Circle()
+                                .fill(.ultraThinMaterial)
+                                .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+                        )
+                }
+                .padding(.trailing, 20)
+                .padding(.bottom, store.isPremium ? 24 : 60)
             }
             .sheet(isPresented: $showingAdd) {
                 AddCounterSheet(store: store)
