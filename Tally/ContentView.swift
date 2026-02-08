@@ -260,7 +260,7 @@ struct CounterCard: View {
             .sensoryFeedback(.impact(flexibility: .soft), trigger: counter.value)
             
             // Bottom controls
-            HStack(spacing: 0) {
+            HStack(spacing: 20) {
                 Button {
                     withAnimation(.spring(response: 0.3)) {
                         store.decrement(counter)
@@ -270,14 +270,12 @@ struct CounterCard: View {
                     Image(systemName: "minus")
                         .font(.title3.weight(.bold))
                         .foregroundStyle(.white.opacity(0.9))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(.white.opacity(0.08))
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(.white.opacity(0.15))
+                        )
                 }
-                
-                Rectangle()
-                    .fill(.white.opacity(0.15))
-                    .frame(width: 1, height: 20)
                 
                 Button {
                     withAnimation(.spring(response: 0.3)) {
@@ -288,12 +286,14 @@ struct CounterCard: View {
                     Image(systemName: "plus")
                         .font(.title3.weight(.bold))
                         .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(.white.opacity(0.08))
+                        .frame(width: 44, height: 44)
+                        .background(
+                            Circle()
+                                .fill(.white.opacity(0.2))
+                        )
                 }
             }
-            .clipShape(.rect(bottomLeadingRadius: 28, bottomTrailingRadius: 28))
+            .padding(.bottom, 16)
         }
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
