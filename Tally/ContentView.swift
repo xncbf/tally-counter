@@ -18,23 +18,71 @@ struct ContentView: View {
     @State private var store = CounterStore()
     @State private var showingAdd = false
     @State private var newName = ""
+    @State private var editingCounter: Counter?
     @Environment(\.colorScheme) var colorScheme
+    
+    var totalCount: Int {
+        store.counters.reduce(0) { $0 + $1.value }
+    }
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 16) {
-                    ForEach(store.counters) { counter in
-                        CounterCard(counter: counter, store: store, colorScheme: colorScheme)
+            VStack(spacing: 0) {
+                // Total summary header
+                if store.counters.count > 1 {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("전체 합계")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text("\(totalCount)")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .contentTransition(.numericText(value: Double(totalCount)))
+                        }
+                        Spacer()
+                        Text("\(store.counters.count)개 카운터")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(.ultraThinMaterial, in: Capsule())
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
                 }
-                .padding()
-            }
-            .background(Color(.systemGroupedBackground))
-            .safeAreaInset(edge: .bottom) {
+                
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        ForEach(store.counters) { counter in
+                            CounterCard(counter: counter, store: store, colorScheme: colorScheme)
+                                .contextMenu {
+                                    Button {
+                                        withAnimation { store.reset(counter) }
+                                        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                                    } label: {
+                                        Label("초기화", systemImage: "arrow.counterclockwise")
+                                    }
+                                    Button(role: .destructive) {
+                                        withAnimation(.spring(response: 0.3)) {
+                                            store.delete(counter)
+                                        }
+                                    } label: {
+                                        Label("삭제", systemImage: "trash")
+                                    }
+                                }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 16)
+                }
+                
+                // Ad banner at bottom
                 BannerAdView(adUnitID: "ca-app-pub-9848654927199314/2656554390")
                     .frame(height: 50)
+                    .background(Color(.systemBackground))
             }
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("탈리")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -43,18 +91,18 @@ struct ContentView: View {
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
-                            .foregroundStyle(.primary)
+                            .symbolRenderingMode(.hierarchical)
                     }
                 }
             }
-            .alert("New Counter", isPresented: $showingAdd) {
-                TextField("Name", text: $newName)
-                Button("Add") {
+            .alert("새 카운터", isPresented: $showingAdd) {
+                TextField("이름", text: $newName)
+                Button("추가") {
                     let name = newName.trimmingCharacters(in: .whitespaces)
-                    store.add(name: name.isEmpty ? "Counter" : name)
+                    store.add(name: name.isEmpty ? "카운터" : name)
                     newName = ""
                 }
-                Button("Cancel", role: .cancel) { newName = "" }
+                Button("취소", role: .cancel) { newName = "" }
             }
         }
     }
@@ -72,64 +120,91 @@ struct CounterCard: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 0) {
+            // Header
             HStack {
                 Text(counter.name)
-                    .font(.headline)
-                    .foregroundStyle(.white)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.9))
                 Spacer()
+                // Reset button
                 Button {
-                    withAnimation(.spring(response: 0.3)) {
-                        store.delete(counter)
-                    }
-                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.white.opacity(0.6))
-                }
-            }
-            
-            Text("\(counter.value)")
-                .font(.system(size: 72, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
-                .contentTransition(.numericText(value: Double(counter.value)))
-                .onLongPressGesture {
                     withAnimation(.spring(response: 0.3)) {
                         store.reset(counter)
                     }
                     UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.5))
+                        .padding(6)
+                        .background(.white.opacity(0.15), in: Circle())
                 }
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 8)
             
-            HStack(spacing: 24) {
+            // Counter value - big tappable area
+            Button {
+                withAnimation(.spring(response: 0.3)) {
+                    store.increment(counter)
+                }
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            } label: {
+                Text("\(counter.value)")
+                    .font(.system(size: 80, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .contentTransition(.numericText(value: Double(counter.value)))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+            }
+            .buttonStyle(.plain)
+            
+            // Bottom controls
+            HStack(spacing: 0) {
+                // Minus button
                 Button {
                     withAnimation(.spring(response: 0.3)) {
                         store.decrement(counter)
                     }
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 } label: {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.system(size: 44))
-                        .foregroundStyle(.white.opacity(0.8))
+                    Image(systemName: "minus")
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.9))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(.white.opacity(0.12))
                 }
                 
+                Divider()
+                    .frame(height: 24)
+                    .background(.white.opacity(0.2))
+                
+                // Plus button
                 Button {
                     withAnimation(.spring(response: 0.3)) {
                         store.increment(counter)
                     }
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 56))
+                    Image(systemName: "plus")
+                        .font(.title2.weight(.semibold))
                         .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(.white.opacity(0.12))
                 }
             }
+            .clipShape(
+                .rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24)
+            )
         }
-        .padding(24)
-        .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(themeColor.gradient)
-                .shadow(color: themeColor.opacity(0.4), radius: 12, y: 6)
+                .shadow(color: themeColor.opacity(0.3), radius: 12, y: 6)
         )
     }
 }

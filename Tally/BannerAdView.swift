@@ -1,19 +1,45 @@
 import SwiftUI
 import GoogleMobileAds
 
-struct BannerAdView: UIViewRepresentable {
+struct BannerAdView: UIViewControllerRepresentable {
     let adUnitID: String
     
-    func makeUIView(context: Context) -> GADBannerView {
-        let banner = GADBannerView(adSize: GADAdSizeBanner)
-        banner.adUnitID = adUnitID
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let rootVC = windowScene.windows.first?.rootViewController {
-            banner.rootViewController = rootVC
-        }
-        banner.load(GADRequest())
-        return banner
+    func makeUIViewController(context: Context) -> BannerAdViewController {
+        let vc = BannerAdViewController()
+        vc.adUnitID = adUnitID
+        return vc
     }
     
-    func updateUIView(_ uiView: GADBannerView, context: Context) {}
+    func updateUIViewController(_ uiViewController: BannerAdViewController, context: Context) {}
+}
+
+class BannerAdViewController: UIViewController, GADBannerViewDelegate {
+    var adUnitID: String = ""
+    private var bannerView: GADBannerView!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        bannerView = GADBannerView(adSize: GADAdSizeBanner)
+        bannerView.adUnitID = adUnitID
+        bannerView.rootViewController = self
+        bannerView.delegate = self
+        bannerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(bannerView)
+        
+        NSLayoutConstraint.activate([
+            bannerView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            bannerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+        
+        bannerView.load(GADRequest())
+    }
+    
+    func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
+        print("✅ Ad received")
+    }
+    
+    func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
+        print("❌ Ad failed: \(error.localizedDescription)")
+    }
 }
