@@ -1,0 +1,9 @@
+build/
+*.xcarchive
+DerivedData/
+.DS_Store
+*.ipa
+*.swp
+xcuserdata/
+*.xcworkspace/xcuserdata/
+app_icon_1024.png
