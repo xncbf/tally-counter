@@ -18,6 +18,9 @@
 		W10000020000000000000002 /* WatchContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = W20000020000000000000002 /* WatchContentView.swift */; };
 		W10000030000000000000003 /* WatchCounterModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = W20000030000000000000003 /* WatchCounterModel.swift */; };
 		W10000040000000000000004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = W20000040000000000000004 /* Assets.xcassets */; };
+		X10000010000000000000001 /* TallyWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = X20000010000000000000001 /* TallyWidget.swift */; };
+		X10000020000000000000002 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = X20000020000000000000002 /* Assets.xcassets */; };
+		X10000030000000000000003 /* TallyWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = X30000010000000000000001 /* TallyWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +37,9 @@
 		W20000030000000000000003 /* WatchCounterModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCounterModel.swift; sourceTree = "<group>"; };
 		W20000040000000000000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		W30000010000000000000001 /* TallyWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TallyWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		X20000010000000000000001 /* TallyWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TallyWidget.swift; sourceTree = "<group>"; };
+		X20000020000000000000002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		X30000010000000000000001 /* TallyWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TallyWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +48,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				PKG0000030000000000000001 /* GoogleMobileAds in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		X40000010000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -60,6 +73,7 @@
 			children = (
 				T50000020000000000000002 /* Tally */,
 				W50000010000000000000001 /* TallyWatch */,
+				X50000010000000000000001 /* TallyWidget */,
 				T50000030000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -94,11 +108,53 @@
 			children = (
 				T30000010000000000000001 /* Tally.app */,
 				W30000010000000000000001 /* TallyWatch.app */,
+				X30000010000000000000001 /* TallyWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
+		X50000010000000000000001 /* TallyWidget */ = {
+			isa = PBXGroup;
+			children = (
+				X20000010000000000000001 /* TallyWidget.swift */,
+				X20000020000000000000002 /* Assets.xcassets */,
+			);
+			path = TallyWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
+
+/* Begin PBXContainerItemProxy section */
+		X60000020000000000000002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = T60000020000000000000002 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = X60000010000000000000001;
+			remoteInfo = TallyWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		X60000030000000000000003 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = X60000010000000000000001 /* TallyWidgetExtension */;
+			targetProxy = X60000020000000000000002 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		X70000030000000000000003 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				X10000030000000000000003 /* TallyWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXNativeTarget section */
 		T60000010000000000000001 /* Tally */ = {
@@ -108,10 +164,12 @@
 				T70000010000000000000001 /* Sources */,
 				T40000010000000000000001 /* Frameworks */,
 				T70000020000000000000002 /* Resources */,
+				X70000030000000000000003 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				X60000030000000000000003 /* PBXTargetDependency */,
 			);
 			name = Tally;
 			packageProductDependencies = (
@@ -138,6 +196,23 @@
 			productReference = W30000010000000000000001 /* TallyWatch.app */;
 			productType = "com.apple.product-type.application";
 		};
+		X60000010000000000000001 /* TallyWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = X80000010000000000000001 /* Build configuration list for PBXNativeTarget "TallyWidgetExtension" */;
+			buildPhases = (
+				X70000010000000000000001 /* Sources */,
+				X40000010000000000000001 /* Frameworks */,
+				X70000020000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TallyWidgetExtension;
+			productName = TallyWidgetExtension;
+			productReference = X30000010000000000000001 /* TallyWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -152,6 +227,9 @@
 						CreatedOnToolsVersion = 16.0;
 					};
 					W60000010000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					X60000010000000000000001 = {
 						CreatedOnToolsVersion = 16.0;
 					};
 				};
@@ -175,6 +253,7 @@
 			targets = (
 				T60000010000000000000001 /* Tally */,
 				W60000010000000000000001 /* TallyWatch */,
+				X60000010000000000000001 /* TallyWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -215,6 +294,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		X70000020000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				X10000020000000000000002 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -237,6 +324,14 @@
 				W10000010000000000000001 /* TallyWatchApp.swift in Sources */,
 				W10000020000000000000002 /* WatchContentView.swift in Sources */,
 				W10000030000000000000003 /* WatchCounterModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		X70000010000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				X10000010000000000000001 /* TallyWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -368,7 +463,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 64SHX24AWR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -398,7 +493,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 64SHX24AWR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -428,7 +523,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 64SHX24AWR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -457,7 +552,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_TEAM = 64SHX24AWR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -478,6 +573,61 @@
 				TARGETED_DEVICE_FAMILY = 4;
 				VALIDATE_PRODUCT = YES;
 				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		X90000010000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 6;
+				DEVELOPMENT_TEAM = 64SHX24AWR;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TallyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "탈리 위젯";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lovebridge.tally.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		X90000020000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 6;
+				DEVELOPMENT_TEAM = 64SHX24AWR;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TallyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "탈리 위젯";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lovebridge.tally.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -507,6 +657,15 @@
 			buildConfigurations = (
 				W90000010000000000000001 /* Debug */,
 				W90000020000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		X80000010000000000000001 /* Build configuration list for PBXNativeTarget "TallyWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				X90000010000000000000001 /* Debug */,
+				X90000020000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
