@@ -1,5 +1,6 @@
 import Foundation
 import StoreKit
+import WidgetKit
 
 struct Counter: Identifiable, Codable {
     var id: UUID
@@ -34,14 +35,15 @@ class CounterStore {
     
     var isPremium: Bool = false {
         didSet {
-            UserDefaults.standard.set(isPremium, forKey: "tally_premium")
+            Self.sharedDefaults.set(isPremium, forKey: "tally_premium")
         }
     }
     
     private let key = "tally_counters"
+    static let sharedDefaults = UserDefaults(suiteName: "group.com.lovebridge.tally") ?? .standard
     
     init() {
-        isPremium = UserDefaults.standard.bool(forKey: "tally_premium")
+        isPremium = Self.sharedDefaults.bool(forKey: "tally_premium")
         load()
         if counters.isEmpty {
             counters = [Counter(name: "카운터", colorIndex: 0, emoji: "☕️")]
@@ -49,14 +51,15 @@ class CounterStore {
     }
     
     func load() {
-        guard let data = UserDefaults.standard.data(forKey: key),
+        guard let data = Self.sharedDefaults.data(forKey: key),
               let decoded = try? JSONDecoder().decode([Counter].self, from: data) else { return }
         counters = decoded
     }
     
     func save() {
         guard let data = try? JSONEncoder().encode(counters) else { return }
-        UserDefaults.standard.set(data, forKey: key)
+        Self.sharedDefaults.set(data, forKey: key)
+        WidgetCenter.shared.reloadAllTimelines()
     }
     
     func increment(_ counter: Counter) {

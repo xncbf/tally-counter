@@ -8,6 +8,9 @@ struct WidgetCounter: Codable, Identifiable {
     var value: Int
     var colorIndex: Int
     var emoji: String
+    // Match main app Counter fields (optional for decoding compat)
+    var goal: Int?
+    var createdAt: Date?
 }
 
 struct TallyEntry: TimelineEntry {
@@ -36,14 +39,9 @@ struct TallyProvider: TimelineProvider {
     
     private func loadCounters() -> [WidgetCounter] {
         let defaults = UserDefaults(suiteName: "group.com.lovebridge.tally")
-        guard let data = defaults?.data(forKey: "tally_widget_counters"),
+        guard let data = defaults?.data(forKey: "tally_counters"),
               let counters = try? JSONDecoder().decode([WidgetCounter].self, from: data) else {
-            // Fallback: try main app defaults
-            guard let data = UserDefaults.standard.data(forKey: "tally_counters"),
-                  let counters = try? JSONDecoder().decode([WidgetCounter].self, from: data) else {
-                return [WidgetCounter(id: UUID(), name: "카운터", value: 0, colorIndex: 0, emoji: "🔢")]
-            }
-            return counters
+            return [WidgetCounter(id: UUID(), name: "카운터", value: 0, colorIndex: 0, emoji: "🔢")]
         }
         return counters
     }
