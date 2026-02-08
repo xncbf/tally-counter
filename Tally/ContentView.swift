@@ -56,7 +56,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationTitle("탈리")
+            .navigationTitle("탈리 - 심플 카운터")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
