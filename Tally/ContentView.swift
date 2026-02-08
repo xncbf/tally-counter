@@ -17,74 +17,55 @@ extension Color {
 struct ContentView: View {
     @State private var store = CounterStore()
     @State private var showingAdd = false
-    @State private var newName = ""
-    @State private var editingCounter: Counter?
+    @State private var showingSettings = false
     @Environment(\.colorScheme) var colorScheme
-    
-    var totalCount: Int {
-        store.counters.reduce(0) { $0 + $1.value }
-    }
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Total summary header
-                if store.counters.count > 1 {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("전체 합계")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text("\(totalCount)")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
-                                .contentTransition(.numericText(value: Double(totalCount)))
-                        }
-                        Spacer()
-                        Text("\(store.counters.count)개 카운터")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(.ultraThinMaterial, in: Capsule())
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                }
+            ZStack {
+                // Background
+                (colorScheme == .dark ? Color.black : Color(.systemGroupedBackground))
+                    .ignoresSafeArea()
                 
-                ScrollView {
-                    LazyVStack(spacing: 16) {
-                        ForEach(store.counters) { counter in
-                            CounterCard(counter: counter, store: store, colorScheme: colorScheme)
-                                .contextMenu {
-                                    Button {
-                                        withAnimation { store.reset(counter) }
-                                        UINotificationFeedbackGenerator().notificationOccurred(.warning)
-                                    } label: {
-                                        Label("초기화", systemImage: "arrow.counterclockwise")
-                                    }
-                                    Button(role: .destructive) {
-                                        withAnimation(.spring(response: 0.3)) {
-                                            store.delete(counter)
-                                        }
-                                    } label: {
-                                        Label("삭제", systemImage: "trash")
-                                    }
-                                }
+                VStack(spacing: 0) {
+                    ScrollView {
+                        LazyVStack(spacing: 20) {
+                            // Summary card
+                            if store.counters.count > 1 {
+                                SummaryCard(store: store, colorScheme: colorScheme)
+                            }
+                            
+                            ForEach(store.counters) { counter in
+                                CounterCard(counter: counter, store: store, colorScheme: colorScheme)
+                                    .transition(.asymmetric(
+                                        insertion: .scale(scale: 0.8).combined(with: .opacity),
+                                        removal: .scale(scale: 0.8).combined(with: .opacity)
+                                    ))
+                            }
                         }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
+                        .padding(.bottom, 80)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-                    .padding(.bottom, 16)
+                    
+                    // Ad banner
+                    if !store.isPremium {
+                        BannerAdView(adUnitID: AdConfig.bannerAdUnitID)
+                            .frame(height: 50)
+                            .background(.ultraThinMaterial)
+                    }
                 }
-                
-                // Ad banner at bottom
-                BannerAdView(adUnitID: "ca-app-pub-9848654927199314/2656554390")
-                    .frame(height: 50)
-                    .background(Color(.systemBackground))
             }
-            .background(Color(.systemGroupedBackground))
             .navigationTitle("탈리")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showingAdd = true
@@ -95,75 +76,188 @@ struct ContentView: View {
                     }
                 }
             }
-            .alert("새 카운터", isPresented: $showingAdd) {
-                TextField("이름", text: $newName)
-                Button("추가") {
-                    let name = newName.trimmingCharacters(in: .whitespaces)
-                    store.add(name: name.isEmpty ? "카운터" : name)
-                    newName = ""
-                }
-                Button("취소", role: .cancel) { newName = "" }
+            .sheet(isPresented: $showingAdd) {
+                AddCounterSheet(store: store)
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView(store: store)
             }
         }
     }
 }
 
+// MARK: - Summary Card
+struct SummaryCard: View {
+    let store: CounterStore
+    let colorScheme: ColorScheme
+    
+    var totalCount: Int {
+        store.counters.reduce(0) { $0 + $1.value }
+    }
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("전체 합계")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+                Text("\(totalCount)")
+                    .font(.system(size: 32, weight: .heavy, design: .rounded))
+                    .contentTransition(.numericText(value: Double(totalCount)))
+            }
+            
+            Spacer()
+            
+            HStack(spacing: -8) {
+                ForEach(store.counters.prefix(4)) { counter in
+                    Text(counter.emoji)
+                        .font(.title3)
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                if store.counters.count > 4 {
+                    Text("+\(store.counters.count - 4)")
+                        .font(.caption2.bold())
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+            }
+        }
+        .padding(20)
+        .background {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(colorScheme == .dark ? Color(.systemGray6) : .white)
+                .shadow(color: .black.opacity(0.05), radius: 10, y: 4)
+        }
+    }
+}
+
+// MARK: - Counter Card
 struct CounterCard: View {
     let counter: Counter
     let store: CounterStore
     let colorScheme: ColorScheme
+    @State private var isTapping = false
+    @State private var showEdit = false
     
-    private var themeColor: Color {
-        let idx = counter.colorIndex % ThemeColors.all.count
-        let pair = ThemeColors.all[idx]
-        return Color(hex: colorScheme == .dark ? pair.dark : pair.light)
+    private var gradient: LinearGradient {
+        let idx = counter.colorIndex % GradientThemes.all.count
+        let theme = GradientThemes.all[idx]
+        return LinearGradient(
+            colors: [Color(hex: theme.start), Color(hex: theme.end)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // Header with emoji + name
             HStack {
-                Text(counter.name)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.9))
+                HStack(spacing: 8) {
+                    Text(counter.emoji)
+                        .font(.title3)
+                    Text(counter.name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.9))
+                }
+                
                 Spacer()
-                // Reset button
-                Button {
-                    withAnimation(.spring(response: 0.3)) {
-                        store.reset(counter)
+                
+                Menu {
+                    Button { showEdit = true } label: {
+                        Label("편집", systemImage: "pencil")
                     }
-                    UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                    Button {
+                        withAnimation(.spring(response: 0.3)) {
+                            store.reset(counter)
+                        }
+                        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                    } label: {
+                        Label("초기화", systemImage: "arrow.counterclockwise")
+                    }
+                    Divider()
+                    Button(role: .destructive) {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                            store.delete(counter)
+                        }
+                    } label: {
+                        Label("삭제", systemImage: "trash")
+                    }
                 } label: {
-                    Image(systemName: "arrow.counterclockwise")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.5))
-                        .padding(6)
-                        .background(.white.opacity(0.15), in: Circle())
+                    Image(systemName: "ellipsis")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.6))
+                        .frame(width: 32, height: 32)
+                        .background(.white.opacity(0.12), in: Circle())
                 }
             }
             .padding(.horizontal, 24)
             .padding(.top, 20)
-            .padding(.bottom, 8)
+            .padding(.bottom, 4)
             
-            // Counter value - big tappable area
+            // Goal progress bar
+            if let goal = counter.goal, goal > 0 {
+                VStack(spacing: 4) {
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Capsule()
+                                .fill(.white.opacity(0.15))
+                                .frame(height: 6)
+                            Capsule()
+                                .fill(.white.opacity(0.8))
+                                .frame(width: geo.size.width * counter.progress, height: 6)
+                                .animation(.spring(response: 0.4), value: counter.progress)
+                        }
+                    }
+                    .frame(height: 6)
+                    
+                    HStack {
+                        Text("\(Int(counter.progress * 100))%")
+                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.6))
+                        Spacer()
+                        Text("목표 \(goal)")
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.6))
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 4)
+            }
+            
+            // Counter value — tappable
             Button {
-                withAnimation(.spring(response: 0.3)) {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                    isTapping = true
                     store.increment(counter)
                 }
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                
+                // Check goal reached
+                if let goal = counter.goal, counter.value + 1 >= goal {
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    withAnimation(.spring(response: 0.2)) { isTapping = false }
+                }
             } label: {
                 Text("\(counter.value)")
-                    .font(.system(size: 80, weight: .bold, design: .rounded))
+                    .font(.system(size: 76, weight: .heavy, design: .rounded))
                     .foregroundStyle(.white)
                     .contentTransition(.numericText(value: Double(counter.value)))
+                    .scaleEffect(isTapping ? 1.1 : 1.0)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
+                    .padding(.vertical, 12)
             }
             .buttonStyle(.plain)
+            .sensoryFeedback(.impact(flexibility: .soft), trigger: counter.value)
             
             // Bottom controls
             HStack(spacing: 0) {
-                // Minus button
                 Button {
                     withAnimation(.spring(response: 0.3)) {
                         store.decrement(counter)
@@ -171,18 +265,17 @@ struct CounterCard: View {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 } label: {
                     Image(systemName: "minus")
-                        .font(.title2.weight(.semibold))
+                        .font(.title3.weight(.bold))
                         .foregroundStyle(.white.opacity(0.9))
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(.white.opacity(0.12))
+                        .padding(.vertical, 16)
+                        .background(.white.opacity(0.08))
                 }
                 
-                Divider()
-                    .frame(height: 24)
-                    .background(.white.opacity(0.2))
+                Rectangle()
+                    .fill(.white.opacity(0.15))
+                    .frame(width: 1, height: 20)
                 
-                // Plus button
                 Button {
                     withAnimation(.spring(response: 0.3)) {
                         store.increment(counter)
@@ -190,22 +283,158 @@ struct CounterCard: View {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 } label: {
                     Image(systemName: "plus")
-                        .font(.title2.weight(.semibold))
+                        .font(.title3.weight(.bold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(.white.opacity(0.12))
+                        .padding(.vertical, 16)
+                        .background(.white.opacity(0.08))
                 }
             }
-            .clipShape(
-                .rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24)
-            )
+            .clipShape(.rect(bottomLeadingRadius: 28, bottomTrailingRadius: 28))
         }
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(themeColor.gradient)
-                .shadow(color: themeColor.opacity(0.3), radius: 12, y: 6)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(gradient)
+                .shadow(color: Color(hex: GradientThemes.all[counter.colorIndex % GradientThemes.all.count].start).opacity(0.35), radius: 16, y: 8)
         )
+        .sheet(isPresented: $showEdit) {
+            EditCounterSheet(counter: counter, store: store)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.visible)
+        }
+    }
+}
+
+// MARK: - Add Counter Sheet
+struct AddCounterSheet: View {
+    let store: CounterStore
+    @Environment(\.dismiss) var dismiss
+    @State private var name = ""
+    @State private var selectedEmoji = "🔢"
+    @State private var goalText = ""
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("이름") {
+                    TextField("카운터 이름", text: $name)
+                }
+                
+                Section("이모지") {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 12) {
+                        ForEach(emojiOptions, id: \.self) { emoji in
+                            Text(emoji)
+                                .font(.title2)
+                                .frame(width: 44, height: 44)
+                                .background(selectedEmoji == emoji ? Color.accentColor.opacity(0.2) : Color.clear, in: RoundedRectangle(cornerRadius: 10))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(selectedEmoji == emoji ? Color.accentColor : .clear, lineWidth: 2)
+                                )
+                                .onTapGesture { selectedEmoji = emoji }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                
+                Section("목표 (선택)") {
+                    TextField("예: 100", text: $goalText)
+                        .keyboardType(.numberPad)
+                }
+            }
+            .navigationTitle("새 카운터")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("취소") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("추가") {
+                        let n = name.trimmingCharacters(in: .whitespaces)
+                        let goal = Int(goalText)
+                        store.add(name: n.isEmpty ? "카운터" : n, emoji: selectedEmoji, goal: goal)
+                        dismiss()
+                    }
+                    .bold()
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Edit Counter Sheet
+struct EditCounterSheet: View {
+    let counter: Counter
+    let store: CounterStore
+    @Environment(\.dismiss) var dismiss
+    @State private var name: String
+    @State private var selectedEmoji: String
+    @State private var goalText: String
+    
+    init(counter: Counter, store: CounterStore) {
+        self.counter = counter
+        self.store = store
+        _name = State(initialValue: counter.name)
+        _selectedEmoji = State(initialValue: counter.emoji)
+        _goalText = State(initialValue: counter.goal.map { "\($0)" } ?? "")
+    }
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("이름") {
+                    TextField("카운터 이름", text: $name)
+                }
+                
+                Section("이모지") {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 12) {
+                        ForEach(emojiOptions, id: \.self) { emoji in
+                            Text(emoji)
+                                .font(.title2)
+                                .frame(width: 44, height: 44)
+                                .background(selectedEmoji == emoji ? Color.accentColor.opacity(0.2) : Color.clear, in: RoundedRectangle(cornerRadius: 10))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(selectedEmoji == emoji ? Color.accentColor : .clear, lineWidth: 2)
+                                )
+                                .onTapGesture { selectedEmoji = emoji }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                
+                Section("목표 (선택)") {
+                    TextField("예: 100", text: $goalText)
+                        .keyboardType(.numberPad)
+                }
+            }
+            .navigationTitle("편집")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("취소") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("저장") {
+                        let n = name.trimmingCharacters(in: .whitespaces)
+                        store.update(counter, name: n.isEmpty ? "카운터" : n, emoji: selectedEmoji, goal: Int(goalText))
+                        dismiss()
+                    }
+                    .bold()
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Ad Config
+enum AdConfig {
+    static var bannerAdUnitID: String {
+        #if DEBUG
+        return "ca-app-pub-3940256099942544/2934735716" // Test ID
+        #else
+        return "ca-app-pub-9848654927199314/2656554390" // Real ID
+        #endif
     }
 }
 
